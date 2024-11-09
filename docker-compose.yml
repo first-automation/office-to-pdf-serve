@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  soffice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["soffice", "--accept=socket,host=soffice,port=2002;urp;StarOffice.ServiceManager", "--headless"]
+    ports:
+      - 2002:2002
+    volumes:
+      - tmp-volume:/tmp
+    restart: always
+  office-to-pdf-serve:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - tmp-volume:/tmp
+      - ./src:/app/src
+    depends_on:
+      - soffice
+    environment:
+      - LIBREOFFICE_HOSTNAME=soffice
+      - LIBREOFFICE_PORT=2002
+    env_file:
+      - .env
+
+volumes:
+  tmp-volume:
