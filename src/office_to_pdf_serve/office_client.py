@@ -33,10 +33,13 @@ class OfficeClient:
     def is_range_blank(
         self, sheet, start_col: int, start_row: int, end_col: int, end_row: int
     ) -> bool:
-        for row in range(start_row, end_row + 1):
-            for col in range(start_col, end_col + 1):
-                cell = sheet.getCellByPosition(col, row)
-                if cell.Type != EMPTY:
+        cell_range = sheet.getCellRangeByPosition(
+            start_col, start_row, end_col, end_row
+        )
+        data_array = cell_range.getDataArray()
+        for row in data_array:
+            for cell_value in row:
+                if cell_value != "":
                     return False
         return True
 
