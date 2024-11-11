@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse
 
 from office_to_pdf_serve.office_client import OfficeClient
 
-SupportedFileTypes = Literal["xlsx", "docx", "pptx"]
+SupportedFileTypes = Literal[".xlsx", ".docx", ".pptx"]
 
 
 router = APIRouter()
@@ -46,7 +46,11 @@ async def convert_to_pdf(file: UploadFile = File(...)):
         with open(pdf_filename, "rb") as buffer:
             pdf_bytes.write(buffer.read())
         pdf_bytes.seek(0)
-        return StreamingResponse(pdf_bytes, media_type="application/pdf")
+        return StreamingResponse(
+            pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": "filename=converted.pdf"},
+        )
     finally:
         os.remove(excel_filename)
         if os.path.exists(pdf_filename):

@@ -20,5 +20,10 @@ docker compose up
 Convert a file to PDF.
 
 ```bash
-curl -X POST -F "file=@path/to/file.xlsx" http://localhost:8000/convert_to_pdf
+curl -X 'POST' \
+'http://localhost:8000/convert_to_pdf' \
+-H 'accept: application/json' \
+-H 'Content-Type: multipart/form-data' \
+-F 'file=@path/to/file.xlsx' \
+--output converted.pdf
 ```
