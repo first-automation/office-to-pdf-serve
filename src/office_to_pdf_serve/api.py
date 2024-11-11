@@ -2,12 +2,15 @@ import aiofiles
 import os
 import io
 import tempfile
+from typing import Literal
 
 import uno
-from fastapi import APIRouter, FastAPI, File, UploadFile
+from fastapi import APIRouter, FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
 
 from office_to_pdf_serve.office_client import OfficeClient
+
+SupportedFileTypes = Literal["xlsx", "docx", "pptx"]
 
 
 router = APIRouter()
@@ -16,7 +19,12 @@ router = APIRouter()
 @router.post("/convert_to_pdf")
 async def convert_to_pdf(file: UploadFile = File(...)):
     os.makedirs("/tmp/office-to-pdf-serve", exist_ok=True)
-    excel_filename = tempfile.mktemp(suffix=".xlsx", dir="/tmp/office-to-pdf-serve")
+    file_type = os.path.splitext(file.filename)[1]
+    if file_type not in SupportedFileTypes.__args__:
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported file type: {file_type}"
+        )
+    excel_filename = tempfile.mktemp(suffix=file_type, dir="/tmp/office-to-pdf-serve")
     pdf_filename = tempfile.mktemp(suffix=".pdf", dir="/tmp/office-to-pdf-serve")
     contents = await file.read()
     async with aiofiles.open(excel_filename, "wb") as buffer:
@@ -29,7 +37,8 @@ async def convert_to_pdf(file: UploadFile = File(...)):
             os.getenv("LIBREOFFICE_HOSTNAME"), os.getenv("LIBREOFFICE_PORT")
         )
         client.load_document(input_url)
-        client.update_print_areas()
+        if file_type == ".xlsx":
+            client.update_print_areas()
         client.export_to_pdf(output_url)
         client.close_document()
 

@@ -1,6 +1,6 @@
 # office-to-pdf-serve
 
-Convert an Office document to a PDF file.
+Convert an Office document (xlsx, docx, pptx) to a PDF file.
 
 ## Quick Start
 

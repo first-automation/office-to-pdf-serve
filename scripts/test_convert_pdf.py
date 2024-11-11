@@ -16,6 +16,7 @@ output_url = f"file://{os.path.abspath(args.output_file)}"
 
 client = OfficeClient()
 client.load_document(input_url)
-client.update_print_areas()
+if args.input_file.endswith(".xlsx"):
+    client.update_print_areas()
 client.export_to_pdf(output_url)
 client.close_document()
