@@ -16,6 +16,16 @@ SupportedFileTypes = Literal[".xlsx", ".docx", ".pptx"]
 router = APIRouter()
 
 
+@router.get("/")
+async def root():
+    return {"message": "Hello, World!"}
+
+
+@router.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @router.post("/convert_to_pdf")
 async def convert_to_pdf(file: UploadFile = File(...)):
     os.makedirs("/tmp/office-to-pdf-serve", exist_ok=True)
