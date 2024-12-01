@@ -1,0 +1,41 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: office-to-pdf-serve
+  labels:
+    cloud.googleapis.com/location: ${CLOUDRUN_LOCATION}
+spec:
+  template:
+    spec:
+      serviceAccountName: ${CLOUDRUN_SERVICE_ACCOUNT_NAME}
+      containers:
+      - name: office-to-pdf-serve
+        image: ${DOCKER_IMAGE_URL}
+        ports:
+        - containerPort: 8000
+        env:
+        - name: LIBREOFFICE_HOSTNAME
+          value: localhost
+        - name: LIBREOFFICE_PORT
+          value: "2002"
+        resources:
+          limits:
+            memory: 1Gi
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      - name: soffice
+        image: ${DOCKER_IMAGE_URL}
+        command: ["soffice", "--accept=socket,host=localhost,port=2002;urp;StarOffice.Service", "--headless"]
+        resources:
+          limits:
+            memory: 1Gi
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        startupProbe:
+          tcpSocket:
+            port: 2002
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}

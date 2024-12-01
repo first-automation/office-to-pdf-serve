@@ -39,3 +39,15 @@ curl -X 'POST' \
 -F 'file=@path/to/file.xlsx' \
 --output converted.pdf
 ```
+
+## Deploy to Cloud Run
+
+```bash
+export CLOUDRUN_LOCATION=asia-northeast1
+export CLOUDRUN_SERVICE_ACCOUNT_NAME=<your_service_account_name>
+export DOCKER_IMAGE_URL=<your_docker_image_url>
+docker build -t ${DOCKER_IMAGE_URL} .
+docker push ${DOCKER_IMAGE_URL}
+envsubst < gcloud/cloudrun.yaml.in > gcloud/cloudrun.yaml
+gcloud run services replace gcloud/cloudrun.yaml --region=${CLOUDRUN_LOCATION}
+```
