@@ -36,8 +36,7 @@ curl -X 'POST' \
 'http://localhost:8000/convert_to_pdf' \
 -H 'accept: application/json' \
 -H 'Content-Type: multipart/form-data' \
--F 'file=@path/to/file.xlsx' \
---output converted.pdf
+-F 'file=@path/to/file.xlsx'
 ```
 
 ## Deploy to Cloud Run
