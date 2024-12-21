@@ -11,6 +11,7 @@ spec:
       containers:
       - name: office-to-pdf-serve
         image: ${DOCKER_IMAGE_URL}
+        command: ["/app/.venv/bin/fastapi", "run", "app.py", "--port", "8000", "--host", "0.0.0.0"]
         ports:
         - containerPort: 8000
         env:
@@ -18,24 +19,28 @@ spec:
           value: localhost
         - name: LIBREOFFICE_PORT
           value: "2002"
+        - name: UNO_PACKAGE_PATH
+          value: /usr/lib/python3/dist-packages/
         resources:
           limits:
             memory: 1Gi
         volumeMounts:
         - name: tmp-volume
-          mountPath: /tmp
+          mountPath: /app/tmp
       - name: soffice
         image: ${DOCKER_IMAGE_URL}
-        command: ["soffice", "--accept=socket,host=localhost,port=2002;urp;StarOffice.Service", "--headless"]
+        command: ["soffice", "--accept=socket,host=localhost,port=2002;urp;StarOffice.ServiceManager", "--headless"]
         resources:
           limits:
             memory: 1Gi
-        volumeMounts:
-        - name: tmp-volume
-          mountPath: /tmp
         startupProbe:
           tcpSocket:
-            port: 2002
+            port: 8000
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /app/tmp
       volumes:
       - name: tmp-volume
-        emptyDir: {}
+        emptyDir:
+          sizeLimit: 1Gi
+          medium: Memory
