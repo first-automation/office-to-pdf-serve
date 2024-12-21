@@ -28,14 +28,14 @@ async def health():
 
 @router.post("/convert_to_pdf")
 async def convert_to_pdf(file: UploadFile = File(...)):
-    os.makedirs("/tmp/office-to-pdf-serve", exist_ok=True)
+    os.makedirs("/app/tmp/office-to-pdf-serve", exist_ok=True)
     file_type = os.path.splitext(file.filename)[1]
     if file_type not in SupportedFileTypes.__args__:
         raise HTTPException(
             status_code=400, detail=f"Unsupported file type: {file_type}"
         )
-    excel_filename = tempfile.mktemp(suffix=file_type, dir="/tmp/office-to-pdf-serve")
-    pdf_filename = tempfile.mktemp(suffix=".pdf", dir="/tmp/office-to-pdf-serve")
+    excel_filename = tempfile.mktemp(suffix=file_type, dir="/app/tmp/office-to-pdf-serve")
+    pdf_filename = tempfile.mktemp(suffix=".pdf", dir="/app/tmp/office-to-pdf-serve")
     contents = await file.read()
     async with aiofiles.open(excel_filename, "wb") as buffer:
         await buffer.write(contents)
@@ -44,7 +44,7 @@ async def convert_to_pdf(file: UploadFile = File(...)):
 
     try:
         client = OfficeClient(
-            os.getenv("LIBREOFFICE_HOSTNAME"), os.getenv("LIBREOFFICE_PORT")
+            os.getenv("LIBREOFFICE_HOSTNAME", "localhost"), os.getenv("LIBREOFFICE_PORT", "2002")
         )
         client.load_document(input_url)
         if file_type == ".xlsx":
