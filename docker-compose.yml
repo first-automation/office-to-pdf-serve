@@ -9,17 +9,17 @@ services:
     ports:
       - 2002:2002
     volumes:
-      - tmp-volume:/tmp
+      - tmp-volume:/app/tmp
     restart: always
   office-to-pdf-serve:
     build:
       context: .
       dockerfile: Dockerfile
+    command: ["/app/.venv/bin/fastapi", "run", "app.py", "--port", "8000", "--host", "0.0.0.0"]
     ports:
       - 8000:8000
     volumes:
-      - tmp-volume:/tmp
-      - ./src:/app/src
+      - tmp-volume:/app/tmp
     depends_on:
       - soffice
     environment:
