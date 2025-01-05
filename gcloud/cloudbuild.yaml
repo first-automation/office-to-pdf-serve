@@ -1,0 +1,20 @@
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', '$_DOCKER_IMAGE_URL', '.']
+# Push the container image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', '$_DOCKER_IMAGE_URL']
+# Create cloudrun.yaml
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: bash
+  args:
+  - '-c'
+  - 'apt-get update && apt-get install -y gettext && envsubst < gcloud/cloudrun.yaml.in > gcloud/cloudrun.yaml'
+  env:
+  - DOCKER_IMAGE_URL=$_DOCKER_IMAGE_URL
+  - CLOUDRUN_LOCATION=$_CLOUDRUN_LOCATION
+  - CLOUDRUN_SERVICE_ACCOUNT_NAME=$_CLOUDRUN_SERVICE_ACCOUNT_NAME
+# Deploy container image to Cloud Run
+- name: gcr.io/cloud-builders/gcloud
+  args: ['run', 'services', 'replace', 'gcloud/cloudrun.yaml', '--region=$_CLOUDRUN_LOCATION']
