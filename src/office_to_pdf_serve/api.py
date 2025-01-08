@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse
 
 from office_to_pdf_serve.office_client import OfficeClient
 
-SupportedFileTypes = Literal[".xlsx", ".docx", ".pptx"]
+SupportedFileTypes = Literal[".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt"]
 
 
 router = APIRouter()
@@ -47,7 +47,7 @@ async def convert_to_pdf(file: UploadFile = File(...)):
             os.getenv("LIBREOFFICE_HOSTNAME", "localhost"), os.getenv("LIBREOFFICE_PORT", "2002")
         )
         client.load_document(input_url)
-        if file_type == ".xlsx":
+        if file_type in [".xlsx", ".xls"]:
             client.update_print_areas()
         client.export_to_pdf(output_url)
         client.close_document()
