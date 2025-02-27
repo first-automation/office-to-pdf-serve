@@ -10,7 +10,7 @@ Installation
 sudo apt install libreoffice
 git clone https://github.com/first-automation/office-to-pdf-serve.git
 cd office-to-pdf-serve
-uv install
+uv sync
 ```
 
 Start the servers.
