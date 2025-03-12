@@ -1,6 +1,5 @@
 import uno
 from com.sun.star.beans import PropertyValue
-from com.sun.star.table.CellContentType import EMPTY
 from com.sun.star.table import CellRangeAddress
 from com.sun.star.sheet import TablePageBreakData
 
@@ -120,10 +119,15 @@ class OfficeClient:
                 )
         return new_bounding_boxes
 
-    def update_print_areas(self) -> None:
+    def update_print_areas(self, sheet_names: list[str] | None = None) -> None:
         if not self.is_sheet():
             raise ValueError("This is not a sheet document")
+
         for sheet in self.document.Sheets:
+            if sheet_names and sheet.Name not in sheet_names:
+                sheet.setPrintAreas(())
+                continue
+
             print_areas = sheet.getPrintAreas()
             if not print_areas:
                 cell_cursor = sheet.createCursor()
@@ -154,7 +158,6 @@ class OfficeClient:
                         max_cols,
                         max_rows,
                     )
-
                     if surround_blank:
                         break
                     else:
@@ -178,8 +181,9 @@ class OfficeClient:
             page_style.setPropertyValue("ScaleToPagesY", 1)
 
     def export_to_pdf(self, output_url: str) -> None:
+        export_command = "calc_pdf_Export" if self.is_sheet() else "writer_pdf_Export"
         pdf_export_filter = (
-            PropertyValue("FilterName", 0, "writer_pdf_Export", 0),
+            PropertyValue("FilterName", 0, export_command, 0),
             PropertyValue("Overwrite", 0, True, 0),
         )
         self.document.storeToURL(output_url, pdf_export_filter)

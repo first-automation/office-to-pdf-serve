@@ -5,3 +5,4 @@ __pycache__
 *.pyc
 *.xlsx
 *.pdf
+cloudrun.yaml

@@ -7,6 +7,7 @@ from typing import Literal
 import uno
 from fastapi import APIRouter, FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
+from loguru import logger
 
 from office_to_pdf_serve.office_client import OfficeClient
 
@@ -27,15 +28,16 @@ async def health():
 
 
 @router.post("/convert_to_pdf")
-async def convert_to_pdf(file: UploadFile = File(...)):
-    os.makedirs("/app/tmp/office-to-pdf-serve", exist_ok=True)
+async def convert_to_pdf(file: UploadFile = File(...), sheet_names: list[str] | None = None):
+    tmp_dir = os.getenv("TMP_DIR", "/tmp")
+    os.makedirs(os.path.join(tmp_dir, "office-to-pdf-serve"), exist_ok=True)
     file_type = os.path.splitext(file.filename)[1]
     if file_type not in SupportedFileTypes.__args__:
         raise HTTPException(
             status_code=400, detail=f"Unsupported file type: {file_type}"
         )
-    excel_filename = tempfile.mktemp(suffix=file_type, dir="/app/tmp/office-to-pdf-serve")
-    pdf_filename = tempfile.mktemp(suffix=".pdf", dir="/app/tmp/office-to-pdf-serve")
+    excel_filename = tempfile.mktemp(suffix=file_type, dir=os.path.join(tmp_dir, "office-to-pdf-serve"))
+    pdf_filename = tempfile.mktemp(suffix=".pdf", dir=os.path.join(tmp_dir, "office-to-pdf-serve"))
     contents = await file.read()
     async with aiofiles.open(excel_filename, "wb") as buffer:
         await buffer.write(contents)
@@ -47,8 +49,9 @@ async def convert_to_pdf(file: UploadFile = File(...)):
             os.getenv("LIBREOFFICE_HOSTNAME", "localhost"), os.getenv("LIBREOFFICE_PORT", "2002")
         )
         client.load_document(input_url)
+        logger.info(f"sheet_names: {sheet_names}")
         if file_type in [".xlsx", ".xls"]:
-            client.update_print_areas()
+            client.update_print_areas(sheet_names)
         client.export_to_pdf(output_url)
         client.close_document()
 
