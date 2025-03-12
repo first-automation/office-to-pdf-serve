@@ -21,6 +21,8 @@ spec:
           value: "2002"
         - name: UNO_PACKAGE_PATH
           value: /usr/lib/python3/dist-packages/
+        - name: TMP_DIR
+          value: /app/tmp
         resources:
           limits:
             memory: 1Gi

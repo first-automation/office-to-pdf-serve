@@ -39,14 +39,17 @@ curl -X 'POST' \
 -F 'file=@path/to/file.xlsx'
 ```
 
+Or you can use the web UI at http://localhost:8000/docs.
+
 ## Deploy to Cloud Run
 
 ```bash
+gcloud auth login
+gcloud config set project <project_id>
 export CLOUDRUN_LOCATION=asia-northeast1
 export CLOUDRUN_SERVICE_ACCOUNT_NAME=<your_service_account_name>
 export DOCKER_IMAGE_URL=<your_docker_image_url>
-docker build -t ${DOCKER_IMAGE_URL} .
-docker push ${DOCKER_IMAGE_URL}
+gcloud builds submit --tag ${DOCKER_IMAGE_URL}
 envsubst < gcloud/cloudrun.yaml.in > gcloud/cloudrun.yaml
 gcloud run services replace gcloud/cloudrun.yaml --region=${CLOUDRUN_LOCATION}
 ```
