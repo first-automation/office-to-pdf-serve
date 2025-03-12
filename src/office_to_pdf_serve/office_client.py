@@ -1,3 +1,5 @@
+import fnmatch
+
 import uno
 from com.sun.star.beans import PropertyValue
 from com.sun.star.table import CellRangeAddress
@@ -124,7 +126,9 @@ class OfficeClient:
             raise ValueError("This is not a sheet document")
 
         for sheet in self.document.Sheets:
-            if sheet_names and sheet.Name not in sheet_names:
+            if sheet_names and not any(
+                fnmatch.fnmatch(sheet.Name, sheet_name) for sheet_name in sheet_names
+            ):
                 sheet.setPrintAreas(())
                 continue
 
