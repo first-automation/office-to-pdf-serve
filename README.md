@@ -52,4 +52,6 @@ export DOCKER_IMAGE_URL=<your_docker_image_url>
 gcloud builds submit --tag ${DOCKER_IMAGE_URL}
 envsubst < gcloud/cloudrun.yaml.in > gcloud/cloudrun.yaml
 gcloud run services replace gcloud/cloudrun.yaml --region=${CLOUDRUN_LOCATION}
+# When the docker image is updated, you need to update the service.
+# gcloud run deploy office-to-pdf-serve --image=${DOCKER_IMAGE_URL} --region=${CLOUDRUN_LOCATION}
 ```
