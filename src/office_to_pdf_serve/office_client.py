@@ -7,7 +7,12 @@ from com.sun.star.sheet import TablePageBreakData
 
 
 class OfficeClient:
-    def __init__(self, hostname: str | None = None, port: int | None = None) -> None:
+    def __init__(
+        self,
+        hostname: str | None = None,
+        port: int | None = None,
+        single_page_sheets: bool = False,
+    ) -> None:
         hostname = hostname or "localhost"
         port = port or 2002
         local_context = uno.getComponentContext()
@@ -21,6 +26,7 @@ class OfficeClient:
             "com.sun.star.frame.Desktop", context
         )
         self.document = None
+        self.single_page_sheets = single_page_sheets
 
     def load_document(self, input_url: str) -> None:
         self.document = self.desktop.loadComponentFromURL(input_url, "_blank", 0, ())
@@ -186,10 +192,21 @@ class OfficeClient:
 
     def export_to_pdf(self, output_url: str) -> None:
         export_command = "calc_pdf_Export" if self.is_sheet() else "writer_pdf_Export"
-        pdf_export_filter = (
-            PropertyValue("FilterName", 0, export_command, 0),
-            PropertyValue("Overwrite", 0, True, 0),
-        )
+
+        if self.is_sheet() and self.single_page_sheets:
+            single_page_filter = (
+                PropertyValue("SinglePageSheets", 0, True, 0),
+            )
+            pdf_export_filter = (
+                PropertyValue("FilterName", 0, export_command, 0),
+                PropertyValue("FilterData", 0, single_page_filter, 0),
+                PropertyValue("Overwrite", 0, True, 0),
+            )
+        else:
+            pdf_export_filter = (
+                PropertyValue("FilterName", 0, export_command, 0),
+                PropertyValue("Overwrite", 0, True, 0),
+            )
         self.document.storeToURL(output_url, pdf_export_filter)
 
     def close_document(self) -> None:

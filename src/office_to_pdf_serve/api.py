@@ -28,7 +28,11 @@ async def health():
 
 
 @router.post("/convert_to_pdf")
-async def convert_to_pdf(file: UploadFile = File(...), sheet_names: list[str] | None = None):
+async def convert_to_pdf(
+    file: UploadFile = File(...),
+    sheet_names: list[str] | None = None,
+    single_page_sheets: bool = False,
+) -> StreamingResponse:
     tmp_dir = os.getenv("TMP_DIR", "/tmp")
     os.makedirs(os.path.join(tmp_dir, "office-to-pdf-serve"), exist_ok=True)
     file_type = os.path.splitext(file.filename)[1]
@@ -46,11 +50,13 @@ async def convert_to_pdf(file: UploadFile = File(...), sheet_names: list[str] | 
 
     try:
         client = OfficeClient(
-            os.getenv("LIBREOFFICE_HOSTNAME", "localhost"), os.getenv("LIBREOFFICE_PORT", "2002")
+            os.getenv("LIBREOFFICE_HOSTNAME", "localhost"),
+            os.getenv("LIBREOFFICE_PORT", "2002"),
+            single_page_sheets=single_page_sheets,
         )
         client.load_document(input_url)
         logger.info(f"sheet_names: {sheet_names}")
-        if file_type in [".xlsx", ".xls"]:
+        if file_type in [".xlsx", ".xls"] and not single_page_sheets:
             client.update_print_areas(sheet_names)
         client.export_to_pdf(output_url)
         client.close_document()
