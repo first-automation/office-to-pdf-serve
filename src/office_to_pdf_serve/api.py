@@ -10,6 +10,7 @@ from fastapi.responses import StreamingResponse
 from loguru import logger
 
 from office_to_pdf_serve.office_client import OfficeClient
+from office_to_pdf_serve.office_cli_command import convert_to_pdf_single_page
 
 SupportedFileTypes = Literal[".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt"]
 
@@ -49,17 +50,19 @@ async def convert_to_pdf(
     output_url = uno.systemPathToFileUrl(os.path.abspath(pdf_filename))
 
     try:
-        client = OfficeClient(
-            os.getenv("LIBREOFFICE_HOSTNAME", "localhost"),
-            os.getenv("LIBREOFFICE_PORT", "2002"),
-            single_page_sheets=single_page_sheets,
-        )
-        client.load_document(input_url)
-        logger.info(f"sheet_names: {sheet_names}")
-        if file_type in [".xlsx", ".xls"] and not single_page_sheets:
-            client.update_print_areas(sheet_names)
-        client.export_to_pdf(output_url)
-        client.close_document()
+        if file_type in [".xlsx", ".xls"] and single_page_sheets:
+            convert_to_pdf_single_page(input_url, pdf_filename)
+        else:
+            client = OfficeClient(
+                os.getenv("LIBREOFFICE_HOSTNAME", "localhost"),
+                os.getenv("LIBREOFFICE_PORT", "2002"),
+            )
+            client.load_document(input_url)
+            logger.info(f"sheet_names: {sheet_names}")
+            if file_type in [".xlsx", ".xls"]:
+                client.update_print_areas(sheet_names)
+            client.export_to_pdf(output_url)
+            client.close_document()
 
         pdf_bytes = io.BytesIO()
         with open(pdf_filename, "rb") as buffer:
